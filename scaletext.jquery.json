@@ -1,0 +1,42 @@
+{
+    "name": "scaletext",
+    "title": "jQuery ScaleText",
+    "description": "Scale text inside a container to be as large as possible without spilling.",
+    "keywords": [
+        "jquery",
+        "scaletext",
+        "plugins",
+        "font",
+        "font-size",
+        "text",
+        "inflate",
+        "scale",
+        "grow",
+        "increase",
+        "fit",
+        "contain",
+        "constrain"
+    ],
+    "version": "1.0.0",
+    "author": {
+        "name": "Andrew Spode Miller",
+        "email": "spode@justfdi.com",
+        "url": "https://spode.me"
+    },
+    "maintainers": [{
+        "name": "Andrew Spode Miller",
+        "email": "spode@justfdi.com",
+        "url": "https://spode.me"
+    }],
+    "licenses": [{
+        "type": "MIT",
+        "url": "http://zenorocha.mit-license.org/"
+    }],
+    "bugs": "https://github.com/unclespode/jquery-scaletext/issues",
+    "homepage": "https://github.com/unclespode/jquery-scaletext",
+    "docs": "https://github.com/unclespode/jquery-scaletext",
+    "download": "https://github.com/unclespode/jquery-scaletext/archive/master.zip",
+    "dependencies": {
+        "jquery": ">=1.4"
+    }
+}
