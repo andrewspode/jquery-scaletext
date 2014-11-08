@@ -1,5 +1,5 @@
 /*
- *  jQuery ScaleText - v1.0.0
+ *  jQuery ScaleText - v1.0.1
  *  Scale text inside a container to be as large as possible without spilling.
  *  https://github.com/unclespode/jquery-scaletext
  *
@@ -91,10 +91,10 @@
                 containerArea.show(); //Show it again
 
                 //Remove anything that affects the box model maths
-                //Give it a fixed width
+                //Give it a fixed width and height
                 pluginThis.el.css({
                     "width": pluginThis.measuredWidth + "px",
-                    "height": "auto",
+                    "height": pluginThis.measuredHeight + "px",
                     "padding": "0px",
                     "border": "none",
                     "overflow": "hidden"
@@ -107,6 +107,8 @@
                 var finalFontSize = scaleLoop(pluginThis);
 
                 //calculate any spacing needed to center it
+                pluginThis.el.css("height", "auto"); //set the height to auto in order to measure it
+                
                 var heightDiff = pluginThis.measuredHeight - pluginThis.element.scrollHeight;
                 var spacerHeight = Math.floor(heightDiff / 2) + "px";
                 var spacer;
