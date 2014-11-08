@@ -7,76 +7,137 @@
 		<script src="../src/jquery.scaletext.js"></script>
 	</head>
 	<style>
-		body {font-family: "Coda", cursive;}
-		.box { margin:20px; padding:20px; float:left; width:320px; height:240px; background-color:rgba(255,0,0,0.5); border-radius:20px; border: 1px solid black;}
-		.buttons {float:left; clear:both; width:100%; text-align:center;}
+		body {font-family: "Coda", cursive; margin-top:0px; padding-top:0px;}
+		.box { font-size:10px; overflow:hidden; margin:20px; padding:20px; float:left; width:320px; height:240px; background-color:rgba(128,128,0,0.8); border-radius:20px; border: 1px solid black;}
+		.bigBox {width:720px;}
+		.boxTwo {text-align:center;}
+		.buttons {width:100%; text-align:center; position:fixed;}
 		.buttons button {padding:10px; margin:10px;}
+		.backgroundBox {position:fixed; left:0px; right:0px; z-index:-1; text-align:center; opacity:0.5; width:100%; height:100%;}
+		.backgroundBox span {display:inline-block; margin:auto; padding:10px;}
+		
 	</style>
 	<body>
 		
+		<div class="backgroundBox"></div>
+
 		<div class="box boxOne">
-			<h1>Hello World!</h1>
-			<h2>It's lovely here.</h2>
-			<p>Did someone find my donkey?</p>
+			<h1>ScaleText</h1>
+			<h2>Maintains relative font sizes.</h2>
+			<p>And tries not to disturb other layout properties.</p>
 		</div>
 
-		<div class="box boxTwo">
-			<span>BIG</span>
-		</div>
+		<div class="box boxTwo">BIG</div>
 
-		<div class="box boxThree scaleText">
+		<div class="box boxThree">
+			<p>Text will be shrunk as well as grown, if there is too much content - like this:</p>
+			<p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.</p>
 			<p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.</p>
 		</div>
 
+		<div class="box boxFour">
+		</div>
+
+		<div class="box boxFive bigBox scaleText">
+		<p>By default, ScaleText will vertically middle your content by adding a spacer at the top, but this can be turned off if you don't want your contents being changed.</p>
+		<p>See the <a href="http://github.com/unclespode/jquery-scaletext">documentation</a> for other options.</p>
+		</div>
+
 		<div class="buttons">
-			<button class="button buttonOne" type="buton">Scale Me</button>
-			<button class="button buttonTwo" type="buton">Animate Me</button>
-			<button class="button buttonThree" type="buton">List Me</button>
+			<button class="button buttonOne" type="buton">Scale</button>
+			<button class="button buttonTwo" type="buton">Animate</button>
+			<button class="button buttonThree" type="buton">Reset</button>
 		</div>
 
 		<script>
-			$('.buttonOne').on("click", function() {
-			    $('.box').css("font-size", "16px");
-			    $(".box").scaleText({});
-			});
+		  //Turn on debug mode as default on this page
+		 $.scaleTextSetup({
+		     "debug": true
+		 });
 
-			$('.buttonTwo').on("click", function() {
-			    $('.box').css("font-size", "16px");
-			    $(".box").scaleText({
-			        animate: true,
-			        debug: true
-			    });
-			});
+		 //Window load makes sure any embedded fonts are loaded too
+		$(window).load(function() {
+   			 //automatically scale any with this class
+    		$(".scaleText").scaleText();
+		});
 
-			$('.buttonThree').on("click", function() {
-			    $('.boxFour').remove(); //get rid of the old one
-			    var box = $('<div class="box boxFour"></div>');
-			    var list = $('<ul></ul>');
-			    box.append(list);
+		  //scale all boxes without animation
+		  $('.buttonOne').on("click", function(e) {
+		     e.preventDefault();
+		     $('.box, .backgroundBox').css("font-size", "10px");
+		     $(".box, .backgroundBox").scaleText({});
+		 });
 
-			    for (var x = 0; x < Math.round(Math.random() * 20) + 3; x++) {
-			        list.append('<li>Item ' + x + '</li>')
-			    }
+		  //scale all boxes with animation
+		 $('.buttonTwo').on("click", function(e) {
+		     e.preventDefault();
+		     $('.box, .backgroundBox').css("font-size", "10px");
+		     $(".box, .backgroundBox").scaleText({
+		         animate: true
+		     });
+		 });
 
-			    $('.buttonThree').before(box);
+		 //reset
+		  $('.buttonThree').on("click", function(e) {
+		     e.preventDefault();
+		     $('.box, .backgroundBox').css("font-size", "10px");
+		 });
 
-			    //scale to fit
-			    box.scaleText();
+		  //Scroll a list of items and scale each time we remove one
+		 $(window).on("load", function() {
+		     var boxFour = $('.boxFour');
+		     var list = $('<ul></ul>').appendTo(boxFour);
 
-			    //Remove one every 2 seconds and then scale to fit
-			    clearTimeout(timer);
-			    var timer = setInterval(function() {
-			        var firstBox = box.find('li:visible:first');
-			        box.find('li:visible:first').fadeOut(500, function() {
-			            box.scaleText();
-			        });
-			        if (!firstBox.length) {
-			            clearTimeout(timer);
-			            $('.buttonThree').trigger("click");
-			        }
-			    }, 2000);
+		     var populateList = function() {
+		         list.empty();
+		         //Create out list items
+		         for (var x = 0; x < Math.round(Math.random() * 20) + 3; x++) {
+		             list.append('<li>Item ' + x + '</li>')
+		         }
+		         //scale to fit
+		         boxFour.scaleText();
+		     }
 
-			});
+		     populateList();
+
+		     //Remove one every 2 seconds and then scale to fit
+		     var timer = setInterval(function() {
+		         var firstItem = boxFour.find('li:visible:first');
+
+		         if (!firstItem.length) {
+		             populateList();
+		         } else {
+		             firstItem.fadeOut(500, function() {
+		                 boxFour.scaleText({
+		                     animate: true
+		                 });
+		             });
+		         }
+		     }, 2000);
+
+		 });
+
+		 var resizeTimer;
+		 var doBackground = function() {
+		     var bgBox = $('.backgroundBox');
+		     var number = 20;
+		     bgBox.empty().hide();
+		     while (number--) {
+		         bgBox.append('<span style="font-size:' + (Math.round(Math.random() * 30) + 6) + 'px">Item ' + number + '</span>');
+		     }
+		     bgBox.show().scaleText();
+		 };
+
+		 var timedDoBackground = function() {
+		     //We use a timer to stop it being called hundreds of times when you resize the page
+		     if (resizeTimer) clearTimeout(resizeTimer);
+		     resizeTimer = setTimeout(function() {
+		         $('.backgroundBox').scaleText()
+		     }, 100);
+		 };
+
+		 $(window).on("load", doBackground);
+		 $(window).on("resize", timedDoBackground);
 			
 		</script>
 	</body>

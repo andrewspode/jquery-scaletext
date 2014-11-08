@@ -2,17 +2,18 @@
 
 ### Scale text inside a container to be as large as possible without spilling.
 
-I work on a number of projects where I need to fit text to a container, so it is the largest font size possible without spilling, to aid legibility at a distance.
+I work on a number of projects where I need to fit text to a container, so it is the largest font size possible without spilling out, to aid legibility at a distance.
 
-I had a collection of different functions in different scenarios and decided to unify these into a jQuery plugin to make my own life, and perhaps yours easier.
+I decided it would be worth while sticking some of this code into a jQuery plugin, especially so I can chain it.
 
-I've experimented with various different techniques over the years and have found this method to be the fastest and most accurate. 
+This is a fairly specific requirement, and is no replacement for good, responsive layout.
 
-I'm always open to collaborate and add new features if someone sees them as useful. 
+* Works on any block/inline-block container
+* Changes no CSS other than font-size
+* Doesn't require a fixed sized container
+* Maintains relative font sizes within container
 
-I primarily use this as part of ThinkWall, a Social Signage solution. If you were thinking of using this on something competing - it's released under the MIT license, but you won't be making any friends...
-
-I used jQuery Boilerplate to put this together - so I apologise if I've done anything wrong. I have, for instance - never used Travis or Coffeescript, so I'm not in a position to test they are correct.
+I primarily use this as part of [ThinkWall](http://thinkwall.com), a Social Signage solution. If you were thinking of using this on something similar/competing - it's released under the MIT license, but you won't be making any friends...
 
 ## Usage
 
@@ -34,9 +35,32 @@ I used jQuery Boilerplate to put this together - so I apologise if I've done any
 	$("#element").scaleText();
 	```
 
-#### [demo/](https://github.com/unclespode/jquery-scaletext/tree/master/demo)
+## Options
 
-Contains a simple HTML file to demonstrate ScaleText.
+* verticalMiddle : true
+
+ScrollText will add padding element to the container in order to center the content, assuming it can't fit 100%
+
+* animate : false
+
+Animate the change in font-size.
+
+* animateOptions : {}
+
+Passthrough of animation options in case you want to change duration / easing etc.
+
+* accuracy : 100
+
+If you decrease this value, the less perfect the fit will be, but the less intensive the scaling is. This can be very handy on large elements where it doesn't matter so much. I believe 0 will give you a tolerance of -10%. Reducing accuracy will *never* leave you with the text overspilling.
+
+* debug : false
+
+Will output to the console how many iterations it required to scale and how long it took to do so. This is useful if you are tweaking your accuracy.
+
+
+#### [Demo](https://github.com/unclespode/jquery-scaletext/tree/master/demo)
+
+I'm not sure how to host a demo via GitHub, so I've put it on my [personal site](http://spode.me/jquery-scaletext/demo). It may not always be the latest version.
 
 ## Contributing
 
@@ -48,4 +72,4 @@ Check [Releases](https://github.com/unclespode/jquery-scaletext/releases) for de
 
 ## License
 
-[MIT License](http://zenorocha.mit-license.org/) © Zeno Rocha
+[MIT License](http://zenorocha.mit-license.org/) © Andrew @Spode Miller

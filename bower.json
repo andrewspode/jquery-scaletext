@@ -1,18 +1,26 @@
 {
-	"name": "jquery-boilerplate",
-	"version": "3.3.4",
-	"homepage": "http://jqueryboilerplate.com",
+	"name": "jquery-scaletext",
+	"version": "1.0.0",
+	"homepage": "http://github.com/unclespode/jquery-scaletext",
 	"authors": [
-		"Zeno Rocha <hi@zenorocha.com>"
+		"Andrew Spode Miller <spode@justfdi.com>"
 	],
-	"description": "A jump-start for jQuery plugins development.",
-	"main": "src/jquery.boilerplate.js",
+	"description": "Scale text inside a container to be as large as possible without spilling.",
+	"main": "src/jquery.scaletext.js",
 	"keywords": [
 		"jquery",
-		"plugin",
-		"boilerplate",
-		"jquery-plugin",
-		"jquery-boilerplate"
+        "scaletext",
+        "plugins",
+        "font",
+        "font-size",
+        "text",
+        "inflate",
+        "scale",
+        "grow",
+        "increase",
+        "fit",
+        "contain",
+        "constrain"
 	],
 	"license": "MIT"
 }
