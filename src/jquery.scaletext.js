@@ -4,7 +4,7 @@
     "use strict";
 
     $.extend({
-    	// function to configure global default options
+        // function to configure global default options
         // jQuery.scalTextSetup(defaultOptions);
         scaleTextSetup: function(options) {
             return $.extend(defaults, options);
@@ -12,7 +12,7 @@
     }).fn.extend({
         // jQuery(selector).scaleText(options);
         scaleText: function(options) {
-        	//Puts the defaults and the sent options together as one
+            //Puts the defaults and the sent options together as one
             options = $.extend({}, defaults, options);
 
             var startScaling = function(pluginThis) {
@@ -32,10 +32,10 @@
                 pluginThis.original.width = pluginThis.el.css("width");
                 pluginThis.original.fontSize = pluginThis.el.css("font-size");
                 pluginThis.divideBy = 16; //default inheritied size
-                
+
                 //Get the font size of the container. If it"s in pixels, use this instead
                 if (pluginThis.original.fontSize.indexOf("px") > -1) {
-                	pluginThis.divideBy = parseInt(pluginThis.original.fontSize);
+                    pluginThis.divideBy = parseInt(pluginThis.original.fontSize);
                 }
 
                 //Can"t measure properly if it"s not visible!
@@ -51,7 +51,8 @@
                 //We use overflow hidden to stop margin collapse issues
                 pluginThis.el.css({
                     "width": pluginThis.original.measuredWidth + "px",
-                    "height": pluginThis.original.measuredHeight + "px",
+                    //"height": pluginThis.original.measuredHeight + "px",
+                    "height": "auto",
                     "margin-left": "9999999px",
                     "padding": "0px",
                     "border": "none",
@@ -69,14 +70,26 @@
 
                 //scale it to size!
                 var finalFontSize = scaleLoop(pluginThis);
+                var heightDiff = pluginThis.original.measuredHeight - pluginThis.element.scrollHeight;          
+                var paddingTop = "+=0px"
+                var paddingBottom = "+=" + heightDiff + "px";
+
+                if (pluginThis.settings.verticalMiddle) {
+                    paddingTop = "+=" + Math.round(heightDiff /2) + "px";
+                    paddingBottom = "+=" + (heightDiff - Math.round(heightDiff /2)) + "px";
+                }
+
+                /*this whole padding malarchy might seem strange, but basically we reduce the height and then use the padding to center the element*/
 
                 //put things back to how they were
                 if (!pluginThis.original.visible) pluginThis.el.hide();
                 pluginThis.el.css({
                     "margin": pluginThis.original.margin,
                     "width": pluginThis.original.width,
-                    "height": pluginThis.original.height,
+                    "height": (pluginThis.original.measuredHeight - heightDiff) + "px",
                     "padding": pluginThis.original.padding,
+                    "padding-top" : paddingTop,
+                    "padding-bottom" : paddingBottom,
                     "border": pluginThis.original.border
                 });
 
@@ -95,10 +108,10 @@
                 //Go up in a large step, with the steps refining as we go
                 var chunkSize = Math.ceil(pluginThis.original.measuredHeight); //start at the size of the element and work our way down
                 var maxSize = chunkSize;
-                var fontSize, finalFontSize;         
+                var fontSize, finalFontSize;
 
                 for (fontSize = 0; fontSize <= maxSize; fontSize += chunkSize) {
-                	pluginThis.loopCount++;
+                    pluginThis.loopCount++;
                     pluginThis.el.css("font-size", fontSize + "px");
 
                     if (pluginThis.element.scrollHeight > pluginThis.original.measuredHeight || pluginThis.element.scrollWidth > pluginThis.original.measuredWidth) {
@@ -134,14 +147,15 @@
         }
     });
 })({
-	debug: false,
+    debug: false,
     scaleImages: false,
+    verticalMiddle: true,
     animate: false,
     animateOptions: {}
 }, jQuery, window, document);
 
 //Window load makes sure the fonts are loaded too
-$(window).load(function () {
-	//automatically scale any with this class
-	$(".scaleText").scaleText();	
+$(window).load(function() {
+    //automatically scale any with this class
+    $(".scaleText").scaleText();
 });
