@@ -106,7 +106,7 @@
                         chunkSize = chunkSize / 2; //increase by less
                     }
 
-                    if (chunkSize < 1 || fontSize === maxSize) {
+                    if (chunkSize < .1 || fontSize === maxSize) {
                         finalFontSize = fontSize;
                         break;
                     }
