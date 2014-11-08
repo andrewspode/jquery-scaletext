@@ -1,3 +1,11 @@
+/*
+ *  jQuery ScaleText - v1.0.0
+ *  Scale text inside a container to be as large as possible without spilling.
+ *  https://github.com/unclespode/jquery-scaletext
+ *
+ *  Made by Andrew Spode Miller
+ *  Under MIT License
+ */
 ;
 (function(defaults, $, window, document, undefined) {
 

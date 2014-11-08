@@ -1,18 +1,43 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>jQuery Boilerplate</title>
+		<title>jQuery ScaleText</title>
 		<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
-		<script src="../src/jquery.boilerplate.js"></script>
+		<script src="../src/jquery.scaletext.js"></script>
 	</head>
+	<style>
+		.box { margin:20px; padding:20px; width:640px; height:240px; background-color:red;}
+	</style>
 	<body>
-		<div id="element"></div>
+		
+		<div class="box boxOne">
+			<h1>Hello World!</h1>
+			<h2>It's lovely here.</h2>
+			<p>Did someone find my donkey?</p>
+		</div>
+
+		<div class="box boxTwo">
+			<h1>Hello World!</h1>
+		</div>
+
+		<div class="box boxThree scaleText">
+			<p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.</p>
+		</div>
+
+		<button class="button buttonOne" type="buton">Scale Me</button>
+		<button class="button buttonTwo" type="buton">Animate Me</button>
+
 		<script>
-			$(function() {
-				$("#element").defaultPluginName({
-					propertyName: "a custom value"
-				});
+			$('.buttonOne').on("click", function () {
+				$('.box').css("font-size", "16px");
+				$(".box").scaleText({});
 			});
+
+			$('.buttonTwo').on("click", function () {
+				$('.box').css("font-size", "16px");
+				$(".box").scaleText({animate:true, debug:true});
+			});
+			
 		</script>
 	</body>
 </html>
