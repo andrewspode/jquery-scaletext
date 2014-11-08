@@ -8,7 +8,9 @@
 	</head>
 	<style>
 		body {font-family: "Coda", cursive;}
-		.box { margin:20px; padding:20px; width:640px; height:240px; background-color:red;}
+		.box { margin:20px; padding-left:20px; padding-right:20px; float:left; width:320px; height:240px; background-color:rgba(255,0,0,0.5); border-radius:20px; border: 1px solid black;}
+		.buttons {float:left; clear:both; width:100%; text-align:center;}
+		.buttons button {padding:10px; margin:10px;}
 	</style>
 	<body>
 		
@@ -19,25 +21,61 @@
 		</div>
 
 		<div class="box boxTwo">
-			<h1>Hello World!</h1>
+			<span>BIG</span>
 		</div>
 
 		<div class="box boxThree scaleText">
 			<p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.</p>
 		</div>
 
-		<button class="button buttonOne" type="buton">Scale Me</button>
-		<button class="button buttonTwo" type="buton">Animate Me</button>
+		<div class="buttons">
+			<button class="button buttonOne" type="buton">Scale Me</button>
+			<button class="button buttonTwo" type="buton">Animate Me</button>
+			<button class="button buttonThree" type="buton">List Me</button>
+		</div>
 
 		<script>
-			$('.buttonOne').on("click", function () {
-				$('.box').css("font-size", "16px");
-				$(".box").scaleText({});
+			$('.buttonOne').on("click", function() {
+			    $('.box').css("font-size", "16px");
+			    $(".box").scaleText({});
 			});
 
-			$('.buttonTwo').on("click", function () {
-				$('.box').css("font-size", "16px");
-				$(".box").scaleText({animate:true, debug:true});
+			$('.buttonTwo').on("click", function() {
+			    $('.box').css("font-size", "16px");
+			    $(".box").scaleText({
+			        animate: true,
+			        debug: true
+			    });
+			});
+
+			$('.buttonThree').on("click", function() {
+			    $('.boxFour').remove(); //get rid of the old one
+			    var box = $('<div class="box boxFour"></div>');
+			    var list = $('<ul></ul>');
+			    box.append(list);
+
+			    for (var x = 0; x < Math.round(Math.random() * 20) + 3; x++) {
+			        list.append('<li>Item ' + x + '</li>')
+			    }
+
+			    $('.buttonThree').before(box);
+
+			    //scale to fit
+			    box.scaleText();
+
+			    //Remove one every 2 seconds and then scale to fit
+			    clearTimeout(timer);
+			    var timer = setInterval(function() {
+			        var firstBox = box.find('li:visible:first');
+			        box.find('li:visible:first').fadeOut(500, function() {
+			            box.scaleText();
+			        });
+			        if (!firstBox.length) {
+			            clearTimeout(timer);
+			            $('.buttonThree').trigger("click");
+			        }
+			    }, 2000);
+
 			});
 			
 		</script>
