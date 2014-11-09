@@ -29,7 +29,9 @@ When choosing your font sizes in a container - think about the relativity of the
 
 I've tested in the latest IE/Chrome/FireFox/Android and that's it - sorry. The code is based on core jQuery principles, so it should be fairly compatible. Please let me know if it's not.
 
-There are a couple of features missing that I've yet to port over from my codebase, but will do in due course. If you have any feature requests - drop me a line on [spode@justfdi.com](mailto:spode@justfdi.com) or [@spode][http://twitter.com/spode] on Twitter.
+There are a couple of features missing that I've yet to port over from my codebase, but will do in due course. If you have any feature requests - drop me a line on [spode@justfdi.com](mailto:spode@justfdi.com) or [@spode](http://twitter.com/spode) on Twitter.
+
+Demo is included in the code, but I've also hosted it on my [personal site](http://spode.me/jquery-scaletext/demo). It may not always be the latest version.
 
 ## Usage
 
@@ -72,11 +74,6 @@ If you decrease this value, the less perfect the fit will be, but the less inten
 * debug : false
 
 Will output to the console how many iterations it required to scale and how long it took to do so. This is useful if you are tweaking your accuracy.
-
-
-#### [Demo](https://github.com/unclespode/jquery-scaletext/tree/master/demo)
-
-I'm not sure how to host a demo via GitHub, so I've put it on my [personal site](http://spode.me/jquery-scaletext/demo). It may not always be the latest version.
 
 ## Contributing
 
