@@ -51,6 +51,9 @@ Demo is included in the code, but I've also hosted it on my [personal site](http
 
 	```javascript
 	$("#element").scaleText();
+
+	/*or chain it with new settings*/
+	$('#element').height("200px").scaleText();
 	```
 
 ## Options
