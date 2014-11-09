@@ -2,18 +2,34 @@
 
 ### Scale text inside a container to be as large as possible without spilling.
 
-I work on a number of projects where I need to fit text to a container, so it is the largest font size possible without spilling out, to aid legibility at a distance.
-
-I decided it would be worth while sticking some of this code into a jQuery plugin, especially so I can chain it.
-
-This is a fairly specific requirement, and is no replacement for good, responsive layout.
-
 * Works on any block/inline-block container
+  * Ignores gracefully
 * Changes no CSS other than font-size
+  * Reset the scaling by changing the container font-size
 * Doesn't require a fixed sized container
-* Maintains relative font sizes within container
+  * Measures container and uses that as its basis
+* Creates and maintains relative font sizes within container
+  * Pixels/Ems/Percentages etc. all supported
+* Non-linear progression makes it fast, no matter what container size
+  * Fast enough to use in animations
+  * Reduce accuracy and make it even faster
+* Uses placeholder and renders offscreen to minimise reflow
+* No minimum/maximum font size. Make it FIT.
+* Optional vertical middling
+* Optional animation
+* Chainable (duh!)
 
-I primarily use this as part of [ThinkWall](http://thinkwall.com), a Social Signage solution. If you were thinking of using this on something similar/competing - it's released under the MIT license, but you won't be making any friends...
+Working on projects such as [ThinkWall](http://thinkwall.com), I often need to fit text to a container, so it is the largest font size possible without spilling out, to aid legibility at a distance. Think of full-screen text adverts, or labels on a graph.
+
+This is a fairly specific requirement, and is no replacement for good, responsive layout. 
+
+There are a couple of other solutions out there but most are quick hacks that are slow or restrictive. However, my implementation is fast enough for general use without breaking things. 
+
+When choosing your font sizes in a container - think about the relativity of the sizes more than the size itself, as ScaleText will maintain these proportions as it scales, no matter what unit you specify your fonts in.
+
+I've tested in the latest IE/Chrome/FireFox/Android and that's it - sorry. The code is based on core jQuery principles, so it should be fairly compatible. Please let me know if it's not.
+
+There are a couple of features missing that I've yet to port over from my codebase, but will do in due course. If you have any feature requests - drop me a line on [spode@justfdi.com](mailto:spode@justfdi.com) or [@spode][http://twitter.com/spode] on Twitter.
 
 ## Usage
 
