@@ -1,7 +1,7 @@
 {
     "name": "scaletext",
     "title": "jQuery ScaleText",
-    "description": "Scale text inside a container to be as large as possible without spilling.",
+    "description": "Quickly scale text inside a container to be as large as possible without spilling.",
     "keywords": [
         "jquery-plugin",
         "jquery",
@@ -18,7 +18,7 @@
         "contain",
         "constrain"
     ],
-    "version": "1.0.2",
+    "version": "1.0.3",
     "author": {
         "name": "Andrew Spode Miller",
         "email": "spode@justfdi.com",

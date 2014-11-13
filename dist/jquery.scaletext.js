@@ -1,6 +1,6 @@
 /*
- *  jQuery ScaleText - v1.0.2
- *  Scale text inside a container to be as large as possible without spilling.
+ *  jQuery ScaleText - v1.0.3
+ *  Quickly scale text inside a container to be as large as possible without spilling.
  *  https://github.com/unclespode/jquery-scaletext
  *
  *  Made by Andrew Spode Miller
@@ -22,165 +22,175 @@
         scaleText: function(options) {
             //Puts the defaults and the sent options together as one
             options = $.extend({}, defaults, options);
-            var cssProperties = ["display", "overflow", "margin", "padding", "border", "height", "width", "position", "top", "bottom", "left", "right", "font-size", "float"],
-                body = $("body");
 
-            var startScaling = function(pluginThis) {
+            //Stuff we will use again
+            var cssProperties = ["display", "overflow", "margin", "border-radius", "padding", "border", "height", "width", "position", "top", "bottom", "left", "right", "font-size", "float"];
+            var scaleTextContainer = $("#scaleTextContainer");
 
-                //This isn"t going to work on inline elements.
-                if (!(pluginThis.el.css("display") === "block" || pluginThis.el.css("display") === "inline-block")) {
+            //We leave it in the DOM so we don't keep inserting a new one everytime we are called. Much faster for multiple calls.
+            if (!scaleTextContainer.length) {
+                scaleTextContainer = $("<div id=\"scaleTextContainer\"></div>").css({
+                    "position": "absolute",
+                    "top": "0px",
+                    "left": "-1000px",
+                    "height": "0px",
+                    "width": "0px",
+                    "visibility": "hidden",
+                    "overflow": "hidden"
+                }).appendTo("body"); //Somewhere to hold our item while we work on it    
+            }
+
+            var startScaling = function(scaleText) {
+
+                //Before we manipulate at all, grab the style to put back afterwards
+                scaleText.styleTag = scaleText.el.attr("style");
+
+                /*capture as much CSS as might be needed for creating a placeholder*/
+                scaleText.visibleCss = scaleText.el.show().css(cssProperties);
+
+                //This isn"t going to work on inline elements. I've not tested with tables etc.
+                if (!(scaleText.visibleCss.display === "block" || scaleText.visibleCss.display === "inline-block")) {
                     return true;
                 }
 
-                pluginThis.wasVisible = pluginThis.el.is(":visible");
-                pluginThis.styleTag = pluginThis.el.attr("style"); //put this back after
-
-                //We need the element to be visible
-                pluginThis.el.show();
-
-                /*capture as much CSS as might be needed for placeholder*/
-                /*I could just clone it, but it might have a lot of content*/
-                pluginThis.visibleCss = pluginThis.el.css(cssProperties);
-
-                //We want a measured font-size in pixels ideally
-                //This used for calculating are repsonsive font sizes
-                pluginThis.divideBy = 16; //default inheritied size
-
-                //Get the font size of the container. If in pixels, use this instead
-                if (pluginThis.visibleCss["font-size"].indexOf("px") > -1) {
-                    pluginThis.divideBy = parseInt(pluginThis.visibleCss["font-size"]);
-                }
-
-                //Get current size of container
-                pluginThis.measuredWidth = parseInt(pluginThis.el.width());
-                pluginThis.measuredHeight = parseInt(pluginThis.el.height());
-
-                //Now we create a placeholder using it's measured size (no contents after all)
-                var placeHolder = $("<div></div>").css($.extend({}, pluginThis.visibleCss, {
-                        "height": pluginThis.measuredHeight,
-                        "width": pluginThis.measuredWidth
-                    })),
-                    containerArea = $("<div></div>").css({
-                        "position": "absolute",
-                        "top": "-100%",
-                        "left": "-100%",
-                        "height": "100%",
-                        "width": "100%",
-                        "overflow": "hidden"
-                    }).appendTo(body); //Somewhere to hold our item while we work on it
+                //Measure it before we reset, for animations
+                scaleText.measuredOriginalFontSize = parseFloat(scaleText.el.css("font-size"));
+                //reset the container
+                scaleText.el.css("font-size", "100%").removeClass(scaleText.settings.scaledClass).find(".scaleTextSpacer").remove(); //return to normal before measuring
+               
+                //Get the measured font size of the container
+                //Get current physical size of container
+                scaleText.measuredFontSize = parseFloat(scaleText.el.css("font-size"));
+                scaleText.measuredWidth = parseFloat(scaleText.el.width());
+                scaleText.measuredHeight = parseFloat(scaleText.el.height());
 
                 //Find all child elements with fixed font sizes and make them responsive
                 //That way we only have to adjust one font size to scale the whole lot
-                var tmpFontSize;
-                pluginThis.el.find("*").each(function() {
-                    tmpFontSize = $(this).css("font-size");
-                    if (tmpFontSize.indexOf("px") > -1) {
-                        if ((parseInt(tmpFontSize) / pluginThis.divideBy) !== 1) $(this).css("font-size", ((parseInt(tmpFontSize) / pluginThis.divideBy) * 100) + "%");
-                    }
-                });
+                //It does this hidden so it doesn't end up adjusting everything
+                if (scaleText.settings.makeRelative) {
+                    var elementFontSize, element;
+                    scaleText.el.hide().find("*").each(function() {
+                        element = $(this);
+                        elementFontSize = element.css("font-size");
+                        if (elementFontSize.indexOf("px") > -1) {
+                            if ((parseInt(elementFontSize) / scaleText.measuredFontSize) !== 1) element.css("font-size", ((parseInt(elementFontSize) / scaleText.measuredFontSize) * 100) + "%");
+                        }
+                    });
+                    //reshow it
+                    scaleText.el.show();
+                }
+
+                //Now we create a placeholder using it's measured size
+                var placeHolder = $("<div></div>").css($.extend({}, scaleText.visibleCss, {
+                    "height": scaleText.measuredHeight + "px",
+                    "width": scaleText.measuredWidth + "px",
+                    "visibility": "hidden"
+                }));
 
                 //Replace our item with a placeholder to stop it messing layout and then take off screen
                 //Remove anything that affects the box model maths
                 //Give it a fixed width and height
-                pluginThis.el.replaceWith(placeHolder).css({
-                    "width": pluginThis.measuredWidth + "px",
-                    "height": pluginThis.measuredHeight + "px",
+                scaleText.el.replaceWith(placeHolder).css({
+                    "width": scaleText.measuredWidth + "px",
+                    "height": scaleText.measuredHeight + "px",
                     "padding": "0px",
                     "border": "none",
                     "overflow": "hidden"
-                }).appendTo(containerArea);
-
-                //Remove any previously used spacers
-                pluginThis.el.find(".scaleTextSpacer").remove();
+                }).appendTo(scaleTextContainer);
 
                 //scale it to size!
-                var finalFontSize = scaleLoop(pluginThis);
+                var finalFontSize = scaleLoop(scaleText);
 
                 //calculate any spacing needed to center it
-                pluginThis.el.css("height", "auto"); //set the height to auto in order to measure it
+                scaleText.el.css("height", "auto"); //set the height to auto in order to measure it
 
-                var heightDiff = pluginThis.measuredHeight - pluginThis.element.scrollHeight,
+                var heightDiff = scaleText.measuredHeight - scaleText.element.scrollHeight,
                     spacerHeight = Math.floor(heightDiff / 2) + "px",
                     spacer;
 
-                if (pluginThis.settings.verticalMiddle && heightDiff > 1) {
+                if (scaleText.settings.verticalMiddle && heightDiff > 0) {
                     spacer = $("<div class=\"scaleTextSpacer\"></div>");
                     spacer.css("height", spacerHeight);
-                    if (spacerHeight) pluginThis.el.prepend(spacer);
+                    if (spacerHeight) scaleText.el.prepend(spacer);
                 }
 
-                //put things back to how they were
-                if (!pluginThis.wasVisible) pluginThis.el.hide();
-
                 //put css back to how it was and then swap back with placeholder
-                placeHolder.replaceWith(pluginThis.el.attr("style", pluginThis.styleTag || "").css("font-size", finalFontSize + "px")).remove(); //get rid of placeholder
-                containerArea.remove(); //don't need that either
+                placeHolder.replaceWith(scaleText.el.attr("style", scaleText.styleTag || "").css("font-size", finalFontSize.percent + "%")).remove(); //get rid of placeholder
 
-                if (pluginThis.settings.animate) {
+                if (scaleText.settings.animate) {
                     //animate the font size
-                    pluginThis.el.css("font-size", pluginThis.visibleCss["font-size"]).animate({
-                        "font-size": finalFontSize + "px"
-                    }, pluginThis.settings.animateOptions);
-
+                    //Don't animate if there is less than 1px difference as it looks odd
+                    //Also measuring doesn't give us sub-pixel dimensions so there is a high chance there is no change
+                    if (Math.abs(scaleText.measuredOriginalFontSize - finalFontSize.pixels) >= 0.5) {
+                        scaleText.el.css("font-size", scaleText.measuredOriginalFontSize + "px").animate({
+                            "font-size": finalFontSize.percent + "%"
+                        }, scaleText.settings.animateOptions);
+                    }
                     //Animate our spacer too
-                    if (spacer) {
+                    if (scaleText.settings.animateSpacer && spacer) {
                         spacer.css("height", "0px").animate({
                             height: spacerHeight
-                        }, pluginThis.settings.animateOptions);
+                        }, scaleText.settings.animateOptions);
                     }
                 }
 
+                //Set a class so we know it's scaled
+                scaleText.el.addClass(scaleText.settings.scaledClass);
+
                 //For debugging purposes
-                if (options.debug) console.log("Took: " + (new Date().getTime() - pluginThis.startTime) + "ms", "Loops: ", pluginThis.loopCount);
+                if (options.debug) console.log("Took: " + (new Date().getTime() - scaleText.startTime) + "ms", "Loops: ", scaleText.loopCount, "Original Font Size:", scaleText.measuredFontSize, "Final Font Size", finalFontSize);
             };
 
-            var scaleLoop = function(pluginThis) {
+            var scaleLoop = function(scaleText) {
                 //Go up in a large step, with the steps refining as we go
-                var chunkSize = Math.ceil(pluginThis.measuredHeight), //start at the size of the element and work our way down
+                var chunkSize = Math.ceil(scaleText.measuredHeight), //start at the size of the element and work our way down
                     maxSize = chunkSize,
-                    fontSize, finalFontSize,
-                    chunkLimit = (1.1 - (Math.min(100, pluginThis.settings.accuracy) / 100));
+                    fontSize, finalFontSize = {},
+                    chunkLimit = (1.1 - (Math.min(100, scaleText.settings.accuracy) / 100));
 
                 for (fontSize = 0; fontSize <= maxSize; fontSize += chunkSize) {
-                    pluginThis.loopCount++;
-                    pluginThis.el.css("font-size", fontSize + "px");
+                    scaleText.loopCount++;
+                    scaleText.el.css("font-size", ((fontSize / scaleText.measuredFontSize) * 100) + "%");
 
-                    if (pluginThis.element.scrollHeight > pluginThis.measuredHeight || pluginThis.element.scrollWidth > pluginThis.measuredWidth) {
+                    if (scaleText.element.scrollHeight > scaleText.measuredHeight || scaleText.element.scrollWidth > scaleText.measuredWidth) {
                         fontSize -= chunkSize; //back a step
                         chunkSize = chunkSize / 2; //increase by less
                     }
 
                     if (chunkSize < chunkLimit || fontSize === maxSize) {
-                        finalFontSize = fontSize;
+                        finalFontSize = {"pixels" : fontSize, "percent" : ((fontSize / scaleText.measuredFontSize) * 100) };
                         break;
                     }
                 }
 
                 //Set our final value
-                pluginThis.el.css("font-size", finalFontSize + "px");
+                scaleText.el.css("font-size", finalFontSize.percent + "%");
                 return finalFontSize;
             };
 
             return $(this).each(function() {
 
-                var pluginThis = {
+                var scaleText = {
                     element: this,
                     el: $(this),
                     settings: options,
                     loopCount: 0
                 };
 
-                if (options.debug) pluginThis.startTime = new Date().getTime();
+                if (options.debug) scaleText.startTime = new Date().getTime();
 
                 //Do the dirty work
-                startScaling(pluginThis);
+                startScaling(scaleText);
             });
         }
     });
 })({
     debug: false,
+    accuracy: 100,
+    makeRelative: true,
     verticalMiddle: true,
     animate: false,
-    accuracy: 100,
-    animateOptions: {}
+    animateSpacer: true,
+    animateOptions: {},
+    scaledClass: "scaledText"
 }, jQuery, window, document);

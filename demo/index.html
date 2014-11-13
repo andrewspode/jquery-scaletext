@@ -10,7 +10,7 @@
 		body {font-family: "Coda", cursive; margin-top:0px; padding-top:0px;}
 		.box { font-size:10px; overflow:hidden; margin:20px; padding:20px; float:left; width:320px; height:240px; background-color:rgba(128,128,0,0.8); border-radius:20px; border: 1px solid black;}
 		.bigBox {width:720px;}
-		.boxTwo {text-align:center;}
+		.boxTwo, .boxFour {text-align:center;}
 		.buttons {width:100%; text-align:center; position:fixed;}
 		.buttons button {padding:10px; margin:10px;}
 		.backgroundBox {position:fixed; left:0px; right:0px; z-index:-1; text-align:center; opacity:0.5; width:100%; height:100%;}
@@ -64,14 +64,14 @@
 		  //scale all boxes without animation
 		  $('.buttonOne').on("click", function(e) {
 		     e.preventDefault();
-		     $('.box, .backgroundBox').css("font-size", "10px");
+		     $('.box, .backgroundBox').css("font-size", "10px").find(".scaleTextSpacer").remove();
 		     $(".box, .backgroundBox").scaleText({});
 		 });
 
 		  //scale all boxes with animation
 		 $('.buttonTwo').on("click", function(e) {
 		     e.preventDefault();
-		     $('.box, .backgroundBox').css("font-size", "10px");
+		     $('.box, .backgroundBox').css("font-size", "10px").find(".scaleTextSpacer").remove();
 		     $(".box, .backgroundBox").scaleText({
 		         animate: true
 		     });
@@ -80,36 +80,46 @@
 		 //reset
 		  $('.buttonThree').on("click", function(e) {
 		     e.preventDefault();
-		     $('.box, .backgroundBox').css("font-size", "10px");
+		     $('.box, .backgroundBox').css("font-size", "10px").find(".scaleTextSpacer").remove();
 		 });
 
 		  //Scroll a list of items and scale each time we remove one
 		 $(window).on("load", function() {
 		     var boxFour = $('.boxFour');
-		     var list = $('<ul></ul>').appendTo(boxFour);
+		     var words = [];
 
-		     var populateList = function() {
-		         list.empty();
+		     //Take all our text from box three and choose all words over 3 letters
+		     $.each($('.boxThree').text().split(" "), function () {
+		     	if (this.length > 3) words.push(this);
+		     });
+
+		     var populateBox = function() {
+		         boxFour.empty();
 		         //Create out list items
-		         for (var x = 0; x < Math.round(Math.random() * 20) + 3; x++) {
-		             list.append('<li>Item ' + x + '</li>')
+		         for (var x = 0; x < 20; x++) {
+		             boxFour.append('<span> ' + words[Math.floor(Math.random() * words.length)] + ' </span>')
 		         }
 		         //scale to fit
-		         boxFour.scaleText();
+		         boxFour.find('span').hide().fadeIn();
+		         boxFour.scaleText({makeRelative: false});
 		     }
 
-		     populateList();
+		     populateBox();
 
 		     //Remove one every 2 seconds and then scale to fit
 		     var timer = setInterval(function() {
-		         var firstItem = boxFour.find('li:visible:first');
+		         var items = boxFour.find('span:visible');
+		         //pick a random item
+		         var item = items.eq(Math.floor(Math.random() * items.length));
 
-		         if (!firstItem.length) {
-		             populateList();
+		         if (!item.length) {
+		             populateBox();
 		         } else {
-		             firstItem.fadeOut(500, function() {
+		             item.css("color", "red").fadeOut(1000, function() {
 		                 boxFour.scaleText({
-		                     animate: true
+		                     makeRelative: false,
+		                     animate : true,
+		                     animateSpacer : false,
 		                 });
 		             });
 		         }
