@@ -16,7 +16,7 @@
             options = $.extend({}, defaults, options);
 
             //Stuff we will use again
-            var cssProperties = ["display", "overflow", "margin", "border-radius", "padding", "border", "height", "width", "position", "top", "bottom", "left", "right", "font-size", "float"];
+            var cssProperties = ["display", "box-sizing", "overflow", "margin", "border-radius", "padding", "border", "height", "width", "position", "top", "bottom", "left", "right", "font-size", "float"];
             var scaleTextContainer = $("#scaleTextContainer");
 
             //We leave it in the DOM so we don't keep inserting a new one everytime we are called. Much faster for multiple calls.
@@ -58,18 +58,20 @@
 
                 //Find all child elements with fixed font sizes and make them responsive
                 //That way we only have to adjust one font size to scale the whole lot
-                //It does this hidden so it doesn't end up adjusting everything
                 if (scaleText.settings.makeRelative) {
-                    var elementFontSize, element;
-                    scaleText.el.hide().find("*").each(function() {
+                    var elementFontSize, element, parentElementFontSize, parentElement;
+                    scaleText.el.find("*").each(function() {
                         element = $(this);
-                        elementFontSize = element.css("font-size");
-                        if (elementFontSize.indexOf("px") > -1) {
-                            if ((parseInt(elementFontSize) / scaleText.measuredFontSize) !== 1) element.css("font-size", ((parseInt(elementFontSize) / scaleText.measuredFontSize) * 100) + "%");
+                        parentElement = element.parent();
+
+                        elementFontSize = parseFloat(element.css("font-size"));
+                        parentElementFontSize = parseFloat(parentElement.css("font-size"));
+
+                        //Does it differ from its parent?
+                        if (elementFontSize !== parentElementFontSize) {
+                            element.css("font-size", ((elementFontSize / parentElementFontSize) * 100) + "%");
                         }
                     });
-                    //reshow it
-                    scaleText.el.show();
                 }
 
                 //Now we create a placeholder using it's measured size
