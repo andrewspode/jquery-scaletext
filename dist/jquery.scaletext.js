@@ -160,7 +160,7 @@
                     }
 
                     if (chunkSize < chunkLimit || fontSize === maxSize) {
-                        finalFontSize = {"pixels" : fontSize, "percent" : ((fontSize / scaleText.measuredFontSize) * 100) };
+                        finalFontSize = {"pixels" : Math.max(0, fontSize), "percent" : (Math.max(0,(fontSize / scaleText.measuredFontSize)) * 100) };
                         break;
                     }
                 }
