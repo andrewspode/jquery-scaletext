@@ -2,8 +2,7 @@
 
 ### Quickly scale text inside a container to be as large as possible without spilling.
 
-* Works on any block/inline-block container
-  * Ignores others gracefully
+* Works on containers, or elements (h1 for example)
 * Works safely on hidden containers
 * Changes no CSS other than font-size
   * Reset the scaling by simply changing the container font-size
@@ -15,7 +14,6 @@
 * Non-linear progression makes it fast, no matter what container size
   * Fast enough to use in animations
   * Reduce accuracy and make it even faster
-* Uses an invisible placeholder and renders offscreen to minimise reflow
 * No minimum/maximum font size required. Make it FIT.
 * Optional vertical middling
 * Optional animation
@@ -29,9 +27,9 @@ There are a couple of other solutions out there but most are quick hacks that ar
 
 When choosing your font sizes in a container - think about the relativity of the sizes more than the size itself, as ScaleText will maintain these proportions as it scales, no matter what unit you specify your fonts in.
 
-I've tested in the latest IE/Chrome/FireFox/Android and that's it - sorry. The code is based on core jQuery principles, so it should be fairly compatible. Please let me know if it's not.
+I've tested in the latest IE/Chrome/FireFox/Android and that's it - sorry. The code is based on core jQuery principles, so it should be fairly compatible. Please let me know if it's not. I have had to change the methodology as I've worked on this code, as there were issues cross-browser, or when zoomed.
 
-There are a couple of features missing that I've yet to port over from my codebase, but will do in due course. If you have any feature requests - drop me a line on [spode@justfdi.com](mailto:spode@justfdi.com) or [@spode](http://twitter.com/spode) on Twitter.
+If you have any feature requests - drop me a line on [spode@justfdi.com](mailto:spode@justfdi.com) or [@spode](http://twitter.com/spode) on Twitter.
 
 Demo is included in the code, but I've also hosted it on my [personal site](http://spode.me/jquery-scaletext/demo). It may not always be the latest version.
 

@@ -1,5 +1,5 @@
 /*
- *  jQuery ScaleText - v1.0.4
+ *  jQuery ScaleText - v1.0.5
  *  Quickly scale text inside a container to be as large as possible without spilling.
  *  https://github.com/unclespode/jquery-scaletext
  *
@@ -13,7 +13,7 @@
 
     $.extend({
         // function to configure global default options
-        // jQuery.scalTextSetup(defaultOptions);
+        // jQuery.scaleTextSetup(defaultOptions);
         scaleTextSetup: function(options) {
             return $.extend(defaults, options);
         }
@@ -23,52 +23,53 @@
             //Puts the defaults and the sent options together as one
             options = $.extend({}, defaults, options);
 
-            //Stuff we will use again
-            var cssProperties = ["display", "box-sizing", "overflow", "margin", "border-radius", "padding", "border", "height", "width", "position", "top", "bottom", "left", "right", "font-size", "float"];
-            var scaleTextContainer = $("#scaleTextContainer");
+            /*This, annoyingly - is the only cross-browser method that also works with different zoom levels. Not ideal.*/
+            var hasOverflow = function(element) {
+                var el = $(element),
+                    styleTag = el.attr("style");
 
-            //We leave it in the DOM so we don't keep inserting a new one everytime we are called. Much faster for multiple calls.
-            if (!scaleTextContainer.length) {
-                scaleTextContainer = $("<div id=\"scaleTextContainer\"></div>").css({
-                    "position": "absolute",
-                    "top": "0px",
-                    "left": "-1000px",
-                    "height": "0px",
-                    "width": "0px",
-                    "visibility": "hidden",
-                    "overflow": "hidden"
-                }).appendTo("body"); //Somewhere to hold our item while we work on it    
+                el.css("overflow", "auto");
+
+                //This accounts for rounding errors when zooming. Hardly ideal still.
+                var overflow = ((element.scrollWidth - element.clientWidth > 1) || (element.scrollHeight - element.clientHeight) > 1);
+                el.attr("style", styleTag || ""); //put it back to how it was
+                return overflow;
+            }
+
+            /* We round final numbers to 2DP as I think the long floats were causing minor issues in Chrome*/
+            var roundNumber = function(i) {
+                return Math.round(i * 100) / 100;
             }
 
             var startScaling = function(scaleText) {
 
+                var finalFontSize, spacerElement, spacerHeight, heightDiff;
+                var elementFontSize, element, parentElementFontSize, parentElement;
+
                 //Before we manipulate at all, grab the style to put back afterwards
                 scaleText.styleTag = scaleText.el.attr("style");
 
-                /*capture as much CSS as might be needed for creating a placeholder*/
-                scaleText.visibleCss = scaleText.el.show().css(cssProperties);
+                scaleText.el.show(); //make sure it's visible
 
-                //This isn"t going to work on inline elements. I've not tested with tables etc.
-                if (!(scaleText.visibleCss.display === "block" || scaleText.visibleCss.display === "inline-block")) {
-                    return true;
-                }
-
-                //Measure it before we reset, for animations
+                //Measure it before we reset, for animation purposes
                 scaleText.measuredOriginalFontSize = parseFloat(scaleText.el.css("font-size"));
-                //reset the container
-                scaleText.el.css("font-size", "100%").removeClass(scaleText.settings.scaledClass).find(".scaleTextSpacer").remove(); //return to normal before measuring
-               
-                //Get the measured font size of the container
-                //Get current physical size of container
-                scaleText.measuredFontSize = parseFloat(scaleText.el.css("font-size"));
                 scaleText.measuredWidth = parseFloat(scaleText.el.width());
                 scaleText.measuredHeight = parseFloat(scaleText.el.height());
+
+                //reset the container and fix it's width and height and put it offscreen
+                scaleText.el.removeClass(scaleText.settings.scaledClass).css({
+                    "font-size": "100%",
+                    "visiblity": "hidden",
+                    "margin-left": "-99999px"
+                }).width(scaleText.measuredWidth).height(scaleText.measuredHeight).find(".scaleTextSpacer").remove(); //return to normal before measuring
+
+                //Get the measured font size of the container now we've reset it to 100%
+                scaleText.measuredFontSize = parseFloat(scaleText.el.css("font-size"));
 
                 //Find all child elements with fixed font sizes and make them responsive
                 //That way we only have to adjust one font size to scale the whole lot
                 if (scaleText.settings.makeRelative) {
-                    var elementFontSize, element, parentElementFontSize, parentElement;
-                    scaleText.el.find("*").each(function() {
+                    scaleText.children.each(function() {
                         element = $(this);
                         parentElement = element.parent();
 
@@ -77,48 +78,27 @@
 
                         //Does it differ from its parent?
                         if (elementFontSize !== parentElementFontSize) {
-                            element.css("font-size", ((elementFontSize / parentElementFontSize) * 100) + "%");
+                            element.css("font-size", roundNumber((elementFontSize / parentElementFontSize) * 100) + "%");
                         }
                     });
                 }
 
-                //Now we create a placeholder using it's measured size
-                var placeHolder = $("<div></div>").css($.extend({}, scaleText.visibleCss, {
-                    "height": scaleText.measuredHeight + "px",
-                    "width": scaleText.measuredWidth + "px",
-                    "visibility": "hidden"
-                }));
-
-                //Replace our item with a placeholder to stop it messing layout and then take off screen
-                //Remove anything that affects the box model maths
-                //Give it a fixed width and height
-                scaleText.el.replaceWith(placeHolder).css({
-                    "width": scaleText.measuredWidth + "px",
-                    "height": scaleText.measuredHeight + "px",
-                    "padding": "0px",
-                    "border": "none",
-                    "overflow": "hidden"
-                }).appendTo(scaleTextContainer);
-
                 //scale it to size!
-                var finalFontSize = scaleLoop(scaleText);
+                finalFontSize = scaleLoop(scaleText);
 
-                //calculate any spacing needed to center it
-                scaleText.el.css("height", "auto"); //set the height to auto in order to measure it
-
-                var heightDiff = scaleText.measuredHeight - scaleText.element.scrollHeight,
-                    spacerHeight = Math.floor(heightDiff / 2) + "px",
-                    spacer;
-
-                if (scaleText.settings.verticalMiddle && heightDiff > 0) {
-                    spacer = $("<div class=\"scaleTextSpacer\"></div>");
-                    spacer.css("height", spacerHeight);
-                    if (spacerHeight) scaleText.el.prepend(spacer);
+                //Calculate centering
+                if (scaleText.settings.verticalMiddle) {
+                    //Makes measuring easier, but does annoyingly cause a reflow in most scenarios
+                    scaleText.el.css("height", "auto");
+                    heightDiff = scaleText.measuredHeight - scaleText.el.height();
+                    if (heightDiff) {
+                        spacerHeight = Math.floor(heightDiff / 2) + "px";
+                        spacerElement = $("<div class=\"scaleTextSpacer\"></div>").css("height", spacerHeight).prependTo(scaleText.el);
+                    }
                 }
 
                 //put css back to how it was and then swap back with placeholder
-                placeHolder.replaceWith(scaleText.el.attr("style", scaleText.styleTag || "").css("font-size", finalFontSize.percent + "%")).remove(); //get rid of placeholder
-
+                scaleText.el.attr("style", scaleText.styleTag || "").css("font-size", finalFontSize.percent + "%");
                 if (scaleText.settings.animate) {
                     //animate the font size
                     //Don't animate if there is less than 1px difference as it looks odd
@@ -127,12 +107,13 @@
                         scaleText.el.css("font-size", scaleText.measuredOriginalFontSize + "px").animate({
                             "font-size": finalFontSize.percent + "%"
                         }, scaleText.settings.animateOptions);
-                    }
-                    //Animate our spacer too
-                    if (scaleText.settings.animateSpacer && spacer) {
-                        spacer.css("height", "0px").animate({
-                            height: spacerHeight
-                        }, scaleText.settings.animateOptions);
+
+                        //Animate our spacer too
+                        if (scaleText.settings.animateSpacer && spacerElement && spacerElement.length) {
+                            spacerElement.css("height", "0px").animate({
+                                height: spacerHeight
+                            }, scaleText.settings.animateOptions);
+                        }
                     }
                 }
 
@@ -140,33 +121,70 @@
                 scaleText.el.addClass(scaleText.settings.scaledClass);
 
                 //For debugging purposes
-                if (options.debug) console.log("Took: " + (new Date().getTime() - scaleText.startTime) + "ms", "Loops: ", scaleText.loopCount, "Original Font Size:", scaleText.measuredFontSize, "Final Font Size", finalFontSize);
+                if (options.debug) console.log("Took: " + (new Date().getTime() - scaleText.startTime) + "ms", "Loops: ", (scaleText.loopCount - scaleText.skipCount), "Skipped: ", scaleText.skipCount, "Original Font Size:", scaleText.measuredFontSize, "Final Font Size", finalFontSize);
             };
 
             var scaleLoop = function(scaleText) {
                 //Go up in a large step, with the steps refining as we go
-                var chunkSize = Math.ceil(scaleText.measuredHeight), //start at the size of the element and work our way down
-                    maxSize = chunkSize,
-                    fontSize, finalFontSize = {},
+                var chunkSize = Math.floor(scaleText.measuredHeight), //start at the size of the element and work our way down
+                    fontSize = 0,
+                    childrenLength, child,
+                    finalFontSize = {},
+                    isOverflow,
+                    tooBig = chunkSize * 2,
                     chunkLimit = (1.1 - (Math.min(100, scaleText.settings.accuracy) / 100));
 
-                for (fontSize = 0; fontSize <= maxSize; fontSize += chunkSize) {
+                //Looplimit should never be needed - but it's a safety precaution
+                while (chunkSize > chunkLimit && scaleText.loopCount < scaleText.loopLimit) {
                     scaleText.loopCount++;
-                    scaleText.el.css("font-size", ((fontSize / scaleText.measuredFontSize) * 100) + "%");
+                        
+                    //If there's less than 2dp difference, then break early
+                    if (roundNumber(fontSize) == roundNumber(fontSize + chunkSize)) break;
+                    
+                    //Increase the fontsize
+                    fontSize += chunkSize;
 
-                    if (scaleText.element.scrollHeight > scaleText.measuredHeight || scaleText.element.scrollWidth > scaleText.measuredWidth) {
-                        fontSize -= chunkSize; //back a step
-                        chunkSize = chunkSize / 2; //increase by less
+                    //Sometimes it will try a font size it's done already, so we skip it to make it faster
+                    if (fontSize < tooBig) {
+                        scaleText.el.css("font-size", roundNumber((fontSize / scaleText.measuredFontSize) * 100) + "%");
+                    } else {
+                        scaleText.skipCount++;
                     }
 
-                    if (chunkSize < chunkLimit || fontSize === maxSize) {
-                        finalFontSize = {"pixels" : Math.max(0, fontSize), "percent" : (Math.max(0,(fontSize / scaleText.measuredFontSize)) * 100) };
-                        break;
+                    //If we are skipping, then don't do this
+                    if (fontSize < tooBig) {
+                        isOverflow = hasOverflow(scaleText.element);
+
+                        //Check child nodes, only if the main container also fits
+                        if (!isOverflow) {
+                            childrenLength = scaleText.children.length;
+                            while (childrenLength--) {
+                                child = scaleText.children[childrenLength];
+                                if (child.hasChildNodes() && hasOverflow(child)) {
+                                    isOverflow = true;
+                                    break; // don't check the rest
+                                }
+                            }
+                        }
+                    }
+
+                    if (fontSize >= tooBig || isOverflow) {
+                        tooBig = fontSize;
+                        fontSize -= chunkSize; //back a step
+                        chunkSize = chunkSize / 2; //increase by less each time
                     }
                 }
 
-                //Set our final value
+
+                //The last font size that fitted
+                finalFontSize = {
+                    "pixels": Math.max(0, roundNumber(fontSize)),
+                    "percent": (Math.max(0, roundNumber((fontSize / scaleText.measuredFontSize) * 100)))
+                };
+
+                //Now set it to our final result
                 scaleText.el.css("font-size", finalFontSize.percent + "%");
+
                 return finalFontSize;
             };
 
@@ -175,8 +193,11 @@
                 var scaleText = {
                     element: this,
                     el: $(this),
+                    children: $(this).find('*'),
                     settings: options,
-                    loopCount: 0
+                    loopCount: 0,
+                    skipCount: 0,
+                    loopLimit: 100
                 };
 
                 if (options.debug) scaleText.startTime = new Date().getTime();
