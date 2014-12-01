@@ -10,6 +10,7 @@
 		body {font-family: "Coda", cursive; margin-top:0px; padding-top:0px;}
 		.box { font-size:10px; overflow:hidden; margin:20px; padding:20px; float:left; width:320px; height:240px; background-color:rgba(128,128,0,0.8); border-radius:20px; border: 1px solid black;}
 		.bigBox {width:720px;}
+		.boxTwo {box-sizing: border-box; width:362px; height:282px;}
 		.boxTwo, .boxFour {text-align:center;}
 		.buttons {width:100%; text-align:center; position:fixed;}
 		.buttons button {padding:10px; margin:10px;}
@@ -52,7 +53,8 @@
 		<script>
 		  //Turn on debug mode as default on this page
 		 $.scaleTextSetup({
-		     "debug": true
+		     "debug": true,
+		     "paddingCheckChildren" : false /*not needed in this demo*/
 		 });
 
 		 //Window load makes sure any embedded fonts are loaded too

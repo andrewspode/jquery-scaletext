@@ -24,16 +24,49 @@
             options = $.extend({}, defaults, options);
 
             /*This, annoyingly - is the only cross-browser method that also works with different zoom levels. Not ideal.*/
-            var hasOverflow = function(element) {
+            var hasOverflow = function(element, scaleText, paddingCheck) {
                 var el = $(element),
-                    styleTag = el.attr("style");
+                    tooWide = false,
+                    tooHigh = false,
+                    displayType = el.css("display");
 
-                el.css("overflow", "auto");
+                //Don't measure overflow of inline elements
+                if (displayType == "inline" || displayType == "none" || !displayType) return false;
 
-                //This accounts for rounding errors when zooming. Hardly ideal still.
-                var overflow = ((element.scrollWidth - element.clientWidth > 1) || (element.scrollHeight - element.clientHeight) > 1);
-                el.attr("style", styleTag || ""); //put it back to how it was
-                return overflow;
+                //We don't do this if we are checking the primary container or paddingCheck is off
+                //It's a lot slower this way, but does include padding into the overflow
+                if (paddingCheck && element != scaleText.element) {
+                    //measure some things
+                    var styleTag = el.attr("style"),
+                        elHeight = el.height(),
+                        elWidth = el.width();
+
+                    //Set the width/height and check for overflow scroll bars
+                    //We add 1 to account  for rounding issues. Otherwise some elements will always say they have overflow when they don't.
+                    //We also take it off screen to reduce reflow, as we do for the main container
+                    var cssChanges = {
+                       //"overflow": "hidden",
+                        /*"position" : "fixed",
+                        "top" : "0px",
+                        "left" : "-99999px",*/
+                        "padding": "0px",
+                        "border": "0px",
+                        "visibility": "hidden"
+                    };
+
+                    if (scaleText.settings.fixedWidth) cssChanges.width = (elWidth + 1) + "px";
+                    if (scaleText.settings.fixedHeight) cssChanges.height = (elHeight + 1) + "px";
+                    el.css(cssChanges);
+                }
+
+                //The 2 is accounting for rounding errors.
+                if (scaleText.settings.fixedWidth) tooWide = Math.abs(element.scrollWidth - element.clientWidth) > 2;
+                if (scaleText.settings.fixedHeight) tooHigh = Math.abs(element.scrollHeight - element.clientHeight) > 2;
+
+                //If necessary, put it back to how it was
+                if (paddingCheck && element != scaleText.element) el.attr("style", styleTag || "");
+
+                return tooWide || tooHigh;
             }
 
             /* We round final numbers to 2DP as I think the long floats were causing minor issues in Chrome*/
@@ -52,19 +85,30 @@
                 scaleText.el.show(); //make sure it's visible
 
                 //Measure it before we reset, for animation purposes
-                scaleText.measuredOriginalFontSize = parseFloat(scaleText.el.css("font-size"));
-                scaleText.measuredWidth = parseFloat(scaleText.el.width());
-                scaleText.measuredHeight = parseFloat(scaleText.el.height());
+                //Notice that we round this. The specs say it should always be an integer - but chrome often gives us a dodgy number when zoomed
+                scaleText.measuredOriginalFontSize = Math.round(parseFloat(scaleText.el.css("font-size")));
+                scaleText.measuredWidth = scaleText.el.width();
+                scaleText.measuredHeight = scaleText.el.height();
 
                 //reset the container and fix it's width and height and put it offscreen
+                //1 pixel extra to allow for rounding errors
                 scaleText.el.removeClass(scaleText.settings.scaledClass).css({
                     "font-size": "100%",
-                    "visiblity": "hidden",
-                    "margin-left": "-99999px"
-                }).width(scaleText.measuredWidth).height(scaleText.measuredHeight).find(".scaleTextSpacer").remove(); //return to normal before measuring
+                    /*"position": "fixed",
+                    "left": "-99999px",
+                    "top": "0px",*/
+                    "overflow": "hidden",
+                    "padding": "0px",
+                    "border": "0px",
+                    "visiblity": "hidden"
+                }).find(".scaleTextSpacer").remove(); //return to normal before measuring
+
+                //Which dimensions are we checking by
+                if (scaleText.settings.fixedHeight) scaleText.el.css("height", (scaleText.measuredHeight + 1) + "px");
+                if (scaleText.settings.fixedWidth) scaleText.el.css("width", (scaleText.measuredWidth + 1) + "px");
 
                 //Get the measured font size of the container now we've reset it to 100%
-                scaleText.measuredFontSize = parseFloat(scaleText.el.css("font-size"));
+                scaleText.measuredFontSize = Math.round(parseFloat(scaleText.el.css("font-size")));
 
                 //Find all child elements with fixed font sizes and make them responsive
                 //That way we only have to adjust one font size to scale the whole lot
@@ -73,11 +117,11 @@
                         element = $(this);
                         parentElement = element.parent();
 
-                        elementFontSize = parseFloat(element.css("font-size"));
-                        parentElementFontSize = parseFloat(parentElement.css("font-size"));
+                        elementFontSize = Math.round(parseFloat(element.css("font-size")));
+                        parentElementFontSize = Math.round(parseFloat(parentElement.css("font-size")));
 
                         //Does it differ from its parent?
-                        if (elementFontSize !== parentElementFontSize) {
+                        if (elementFontSize && parentElementFontSize && elementFontSize !== parentElementFontSize) {
                             element.css("font-size", roundNumber((elementFontSize / parentElementFontSize) * 100) + "%");
                         }
                     });
@@ -88,7 +132,6 @@
 
                 //Calculate centering
                 if (scaleText.settings.verticalMiddle) {
-                    //Makes measuring easier, but does annoyingly cause a reflow in most scenarios
                     scaleText.el.css("height", "auto");
                     heightDiff = scaleText.measuredHeight - scaleText.el.height();
                     if (heightDiff) {
@@ -121,26 +164,24 @@
                 scaleText.el.addClass(scaleText.settings.scaledClass);
 
                 //For debugging purposes
-                if (options.debug) console.log("Took: " + (new Date().getTime() - scaleText.startTime) + "ms", "Loops: ", (scaleText.loopCount - scaleText.skipCount), "Skipped: ", scaleText.skipCount, "Original Font Size:", scaleText.measuredFontSize, "Final Font Size", finalFontSize);
+                if (options.debug) console.log("Took: " + (new Date().getTime() - scaleText.startTime) + "ms", "Loops: ", (scaleText.loopCount - scaleText.skipCount), "Skipped: ", scaleText.skipCount, "Child checks: ", scaleText.childCount, "Original Font Size:", scaleText.measuredFontSize, "Final Font Size", finalFontSize);
             };
 
             var scaleLoop = function(scaleText) {
                 //Go up in a large step, with the steps refining as we go
                 var chunkSize = Math.floor(scaleText.measuredHeight), //start at the size of the element and work our way down
                     fontSize = 0,
-                    childrenLength, child,
+                    childrenLength, child, startChildrenCheck,
                     finalFontSize = {},
                     isOverflow,
                     tooBig = chunkSize * 2,
                     chunkLimit = (1.1 - (Math.min(100, scaleText.settings.accuracy) / 100));
 
-                //Looplimit should never be needed - but it's a safety precaution
-                while (chunkSize > chunkLimit && scaleText.loopCount < scaleText.loopLimit) {
+                //Looplimit should never be needed - but it's a safety precaution against the browser freezing
+                while (chunkSize > chunkLimit && scaleText.loopCount < scaleText.loopLimit && scaleText.childCount < scaleText.loopLimit) {
                     scaleText.loopCount++;
-                        
-                    //If there's less than 2dp difference, then break early
-                    if (roundNumber(fontSize) == roundNumber(fontSize + chunkSize)) break;
-                    
+                    isOverflow = false;
+
                     //Increase the fontsize
                     fontSize += chunkSize;
 
@@ -153,16 +194,29 @@
 
                     //If we are skipping, then don't do this
                     if (fontSize < tooBig) {
-                        isOverflow = hasOverflow(scaleText.element);
+                        //Does the main container fit?
+                        if (scaleText.settings.overflowCheckContainer) {
+                            isOverflow = hasOverflow(scaleText.element, scaleText);
+
+                            //We've got close enough with the container, now put the chunkSize back and start on the children
+                            if (!startChildrenCheck && chunkSize <= (chunkLimit * 2)) {
+                                startChildrenCheck = 1;
+                                chunkSize = fontSize;
+                            }
+                        }
 
                         //Check child nodes, only if the main container also fits
-                        if (!isOverflow) {
+                        if (!scaleText.settings.overflowCheckContainer || (startChildrenCheck && !isOverflow)) {
                             childrenLength = scaleText.children.length;
                             while (childrenLength--) {
                                 child = scaleText.children[childrenLength];
-                                if (child.hasChildNodes() && hasOverflow(child)) {
-                                    isOverflow = true;
-                                    break; // don't check the rest
+                                //If it doesn't contain anything, then we don't need to check it
+                                if (child.hasChildNodes()) {
+                                    scaleText.childCount++;
+                                    if (hasOverflow(child, scaleText, scaleText.settings.paddingCheckChildren)) {
+                                        isOverflow = true;
+                                        break; // don't check the rest
+                                    }
                                 }
                             }
                         }
@@ -175,11 +229,14 @@
                     }
                 }
 
+                //The last font size that fitted;
+                //We reduce it slightly as we are measuring our boxes being up to 1px too big due to rounding
+                fontSize -= 0.5; //safer, but won't always be big enough to fit perfectly :(
+                if (fontSize <= 0) fontSize = 1; //never make it disappear completely.
 
-                //The last font size that fitted
                 finalFontSize = {
-                    "pixels": Math.max(0, roundNumber(fontSize)),
-                    "percent": (Math.max(0, roundNumber((fontSize / scaleText.measuredFontSize) * 100)))
+                    "pixels": roundNumber(fontSize),
+                    "percent": roundNumber((fontSize / scaleText.measuredFontSize) * 100)
                 };
 
                 //Now set it to our final result
@@ -197,13 +254,15 @@
                     settings: options,
                     loopCount: 0,
                     skipCount: 0,
-                    loopLimit: 100
+                    childCount: 0,
+                    loopLimit: 9999 /*stop browser freezing if there is an issue*/
                 };
 
                 if (options.debug) scaleText.startTime = new Date().getTime();
 
                 //Do the dirty work
-                startScaling(scaleText);
+                //Has to be at least one of these settings
+                if (options.fixedWidth || options.fixedHeight) startScaling(scaleText);
             });
         }
     });
@@ -215,5 +274,9 @@
     animate: false,
     animateSpacer: true,
     animateOptions: {},
+    paddingCheckChildren: true, /*Slows things down*/
+    overflowCheckContainer: true, /*Sometimes we just want to uniformly increase children*/
+    fixedWidth: true,
+    fixedHeight: true,
     scaledClass: "scaledText"
 }, jQuery, window, document);
