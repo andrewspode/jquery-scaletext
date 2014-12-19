@@ -18,7 +18,7 @@
         "contain",
         "constrain"
     ],
-    "version": "1.0.5",
+    "version": "1.0.6",
     "author": {
         "name": "Andrew Spode Miller",
         "email": "spode@justfdi.com",
@@ -38,6 +38,6 @@
     "docs": "https://github.com/unclespode/jquery-scaletext",
     "download": "https://github.com/unclespode/jquery-scaletext/archive/master.zip",
     "dependencies": {
-        "jquery": ">=1.4"
+        "jquery": ">=2.0"
     }
 }

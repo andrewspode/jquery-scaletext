@@ -23,11 +23,11 @@
                     displayType = el.css("display");
 
                 //Don't measure overflow of inline elements
-                if (displayType == "inline" || displayType == "none" || !displayType) return false;
+                if (displayType === "inline" || displayType === "none" || !displayType) return false;
 
                 //We don't do this if we are checking the primary container or paddingCheck is off
                 //It's a lot slower this way, but does include padding into the overflow
-                if (paddingCheck && element != scaleText.element) {
+                if (paddingCheck && element !== scaleText.element) {
                     //measure some things
                     var styleTag = el.attr("style"),
                         elHeight = el.height(),
@@ -56,15 +56,15 @@
                 if (scaleText.settings.fixedHeight) tooHigh = Math.abs(element.scrollHeight - element.clientHeight) > 2;
 
                 //If necessary, put it back to how it was
-                if (paddingCheck && element != scaleText.element) el.attr("style", styleTag || "");
+                if (paddingCheck && element !== scaleText.element) el.attr("style", styleTag || "");
 
                 return tooWide || tooHigh;
-            }
+            };
 
             /* We round final numbers to 2DP as I think the long floats were causing minor issues in Chrome*/
             var roundNumber = function(i) {
                 return Math.round(i * 100) / 100;
-            }
+            };
 
             var startScaling = function(scaleText) {
 
@@ -242,7 +242,7 @@
                 var scaleText = {
                     element: this,
                     el: $(this),
-                    children: $(this).find('*'),
+                    children: $(this).find("*"),
                     settings: options,
                     loopCount: 0,
                     skipCount: 0,

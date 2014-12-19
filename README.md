@@ -3,6 +3,7 @@
 ### Quickly scale text inside a container to be as large as possible without spilling.
 
 * Works on containers, or elements (h1 for example)
+  * Recursively checks children for overflow
 * Works safely on hidden containers
 * Changes no CSS other than font-size
   * Reset the scaling by simply changing the container font-size
@@ -12,7 +13,7 @@
   * Pixels/Ems/Percentages etc. all supported
   * Optionally turn this off to support a mixture of fixed and scalable font sizes
 * Non-linear progression makes it fast, no matter what container size
-  * Fast enough to use in animations
+  * Fast enough to use in (some) animation environments
   * Reduce accuracy and make it even faster
 * No minimum/maximum font size required. Make it FIT.
 * Optional vertical middling
@@ -85,6 +86,18 @@ Passthrough of animation options in case you want to change duration / easing et
 * accuracy : 100
 
 If you decrease this value, the less perfect the fit will be, but the less intensive the scaling is. This is only really useful when doing animations, where every millisecond counts. I believe 0 will give you a tolerance of -10%. Reducing accuracy will *never* leave you with the text overspilling.
+
+* paddingCheckChildren: true
+
+When scaling the contents of your container, this will recursively check any children that are also parents, to make sure our scaling isn't causing any overspill there too. This has quite an effect on performance, increasing the number of checks by magnitudes. You can avoid this by being specific about what you are scaling.
+
+* overflowCheckContainer: true
+
+In some scenarios, you just want to scale the contents of the children as much as you can, and you aren't worried if it causes the main container to increase in size. 
+
+* fixedWidth/fixedHeight : true
+
+By default the container will fix at the size it was called at. Changing these allows expansion in either dimension.
 
 * debug : false
 
