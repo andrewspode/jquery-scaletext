@@ -1,5 +1,5 @@
 /*
- *  jQuery ScaleText - v1.0.6
+ *  jQuery ScaleText - v1.0.7
  *  Quickly scale text inside a container to be as large as possible without spilling.
  *  https://github.com/unclespode/jquery-scaletext
  *
@@ -83,6 +83,7 @@
                 scaleText.styleTag = scaleText.el.attr("style");
 
                 scaleText.el.show(); //make sure it's visible
+                scaleText.el.removeClass(scaleText.settings.scaledClass);
 
                 //Measure it before we reset, for animation purposes
                 //Notice that we round this. The specs say it should always be an integer - but chrome often gives us a dodgy number when zoomed
@@ -92,7 +93,7 @@
 
                 //reset the container and fix it's width and height and put it offscreen
                 //1 pixel extra to allow for rounding errors
-                scaleText.el.removeClass(scaleText.settings.scaledClass).css({
+                scaleText.el.css({
                     "font-size": "100%",
                     /*"position": "fixed",
                     "left": "-99999px",
